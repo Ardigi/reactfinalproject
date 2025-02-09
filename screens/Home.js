@@ -1,13 +1,16 @@
 import * as React from 'react';
-import { View, Text, StyleSheet, Image, TextInput, FlatList, Pressable, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Image, TextInput, FlatList, Pressable, ActivityIndicator, ScrollView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { initDatabase, saveMenuItems, getMenuItems, hasData, getMenuItemsByCategories, searchMenuItems } from '../utils/database';
 import { useMemo, useCallback } from 'react';
 import debounce from 'lodash/debounce';
+import { getCachedImage } from '../utils/imageCache';
 
 const API_URL = 'https://raw.githubusercontent.com/Meta-Mobile-Developer-PC/Working-With-Data-API/main/capstone.json';
-const IMAGE_BASE_URL = 'https://github.com/Meta-Mobile-Developer-PC/Working-With-Data-API/blob/main/images';
+const IMAGE_BASE_URL = Platform.OS === 'web' 
+  ? 'https://raw.githubusercontent.com/Meta-Mobile-Developer-PC/Working-With-Data-API/main/images'
+  : 'https://github.com/Meta-Mobile-Developer-PC/Working-With-Data-API/blob/main/images';
 
 const categories = ['Starters', 'Mains', 'Desserts', 'Drinks'];
 
@@ -51,34 +54,38 @@ export default function Home() {
     const initialize = async () => {
       try {
         setIsLoading(true);
-        
-        // Initialize database
         await initDatabase();
         
-        // Check if we have stored data
         const hasStoredData = await hasData();
         
         if (!hasStoredData) {
-          // Fetch from API and store in database
           const response = await fetch(API_URL);
           const json = await response.json();
           
-          const transformedData = json.menu.map((item, index) => ({
-            id: (index + 1).toString(),
-            name: item.name,
-            description: item.description,
-            price: item.price.toFixed(2),
-            category: item.category,
-            image: { uri: getImageUrl(item.name) }
-          }));
+          // Process images sequentially to avoid overwhelming the device
+          const transformedData = await Promise.all(
+            json.menu.map(async (item, index) => ({
+              id: (index + 1).toString(),
+              name: item.name,
+              description: item.description,
+              price: item.price.toFixed(2),
+              category: item.category,
+              image: await getImageUrl(item.name)
+            }))
+          );
 
-          // Save to database
           await saveMenuItems(transformedData);
           setMenuItems(transformedData);
         } else {
-          // Load from database
           const localMenuItems = await getMenuItems();
-          setMenuItems(localMenuItems);
+          // Ensure cached images are still valid
+          const updatedItems = await Promise.all(
+            localMenuItems.map(async item => ({
+              ...item,
+              image: await getCachedImage(item.image.uri)
+            }))
+          );
+          setMenuItems(updatedItems);
         }
       } catch (error) {
         console.error('Error during initialization:', error);
@@ -91,8 +98,7 @@ export default function Home() {
     initialize();
   }, []);
 
-  const getImageUrl = (imageName) => {
-    // Convert image names to match the API's format
+  const getImageUrl = async (imageName) => {
     const imageMapping = {
       'Greek Salad': 'greekSalad',
       'Bruschetta': 'bruschetta',
@@ -101,7 +107,14 @@ export default function Home() {
       'Lemon Dessert': 'lemonDessert'
     };
     
-    return `${IMAGE_BASE_URL}/${imageMapping[imageName]}.jpg?raw=true`;
+    const imagePath = imageMapping[imageName];
+    const url = `${IMAGE_BASE_URL}/${imagePath}.jpg`;
+    
+    if (Platform.OS === 'web') {
+      return { uri: url };
+    }
+    
+    return await getCachedImage(url);
   };
 
   // Filter menu items based on search and category
@@ -218,24 +231,17 @@ export default function Home() {
           <Text style={styles.menuItemDescription}>{item.description}</Text>
           <Text style={styles.menuItemPrice}>${item.price}</Text>
         </View>
-        <Image 
-          source={item.image} 
-          style={styles.menuItemImage}
-          defaultSource={require('../assets/placeholder.png')}
-        />
       </View>
       <View style={styles.divider} />
     </View>
   );
 
-  // Temporary logo placeholder until you have the actual image
+  // Update the LogoPlaceholder component
   const LogoPlaceholder = () => (
-    <View style={[styles.logo, { backgroundColor: '#F4CE14', justifyContent: 'center', alignItems: 'center', borderRadius: 8 }]}>
-      <Text style={{ color: '#495E57', fontSize: 16, fontWeight: 'bold' }}>LITTLE LEMON</Text>
-    </View>
+    <Text style={styles.logoText}>LITTLE LEMON</Text>
   );
 
-  // Update the HeroBanner component to show search loading state
+  // Update the HeroBanner component
   const HeroBanner = ({ searchText, onSearchChange }) => (
     <View style={styles.hero}>
       <View style={styles.heroContent}>
@@ -246,20 +252,8 @@ export default function Home() {
             We are a family owned Mediterranean restaurant, focused on traditional recipes served with a modern twist.
           </Text>
         </View>
-        <Image 
-          source={require('../assets/hero-image.png')}
-          style={styles.heroImage}
-          resizeMode="cover"
-        />
       </View>
       <View style={styles.searchContainer}>
-        <Image 
-          source={require('../assets/search.png')}
-          style={[
-            styles.searchIcon,
-            isSearching && styles.searchIconSpinning
-          ]}
-        />
         <TextInput
           style={styles.searchBar}
           placeholder={isSearching ? "Searching..." : "Search menu items..."}
@@ -428,11 +422,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Karla',
     lineHeight: 22,
   },
-  heroImage: {
-    width: 120,
-    height: 140,
-    borderRadius: 12,
-  },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -440,15 +429,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 12,
     marginTop: 8,
-  },
-  searchIcon: {
-    width: 20,
-    height: 20,
-    tintColor: '#333333',
-    marginRight: 8,
-  },
-  searchIconSpinning: {
-    opacity: 0.5,
   },
   searchSpinner: {
     marginLeft: 8,
@@ -529,11 +509,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#495E57',
   },
-  menuItemImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 8,
-  },
   divider: {
     height: 1,
     backgroundColor: '#CCCCCC',
@@ -564,5 +539,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#495E57',
     padding: 20,
+  },
+  logoText: {
+    color: '#495E57',
+    fontSize: 24,
+    fontWeight: 'bold',
+    fontFamily: 'Markazi Text',
   },
 }); 

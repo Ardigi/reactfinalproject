@@ -7,8 +7,22 @@ import Home from './screens/Home';
 import Profile from './screens/Profile';
 import Splash from './screens/Splash';
 import { MaskedTextInput } from 'react-native-mask-text';
+import * as SQLite from 'expo-sqlite';
+import { initDatabase } from './utils/database';
 
 const Stack = createNativeStackNavigator();
+
+// Initialize database connection at the top level
+const db = SQLite.openDatabase('little_lemon.db');
+
+// Initialize database tables
+initDatabase()
+  .then(() => {
+    console.log('Database initialized successfully');
+  })
+  .catch(error => {
+    console.error('Error initializing database:', error);
+  });
 
 export default function App() {
   const [isLoading, setIsLoading] = React.useState(true);

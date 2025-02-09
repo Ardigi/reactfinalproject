@@ -1,6 +1,10 @@
 import * as SQLite from 'expo-sqlite';
 
+// Use the same database connection across the app
 const db = SQLite.openDatabase('little_lemon.db');
+
+// Export the db connection for potential direct use
+export { db };
 
 export const initDatabase = () => {
   return new Promise((resolve, reject) => {
@@ -23,14 +27,18 @@ export const saveMenuItems = (menuItems) => {
   return new Promise((resolve, reject) => {
     db.transaction(
       (tx) => {
-        // Clear existing items
         tx.executeSql('DELETE FROM menu;');
         
-        // Insert new items
         menuItems.forEach((item) => {
           tx.executeSql(
             'INSERT INTO menu (name, description, price, category, image) VALUES (?, ?, ?, ?, ?);',
-            [item.name, item.description, item.price, item.category, item.image.uri]
+            [
+              item.name,
+              item.description,
+              item.price,
+              item.category,
+              item.image.uri // Store the cached path
+            ]
           );
         });
       },

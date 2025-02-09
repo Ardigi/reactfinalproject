@@ -1,1 +1,6 @@
- 
+// App icon
+const icon = `
+<svg width="1024" height="1024" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1024" height="1024" fill="#F4CE14"/>
+  <text x="256" y="640" font-family="Arial" font-size="200" fill="#495E57">Little Lemon</text>
+</svg> 
