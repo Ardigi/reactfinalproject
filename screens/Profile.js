@@ -185,22 +185,29 @@ export default function Profile() {
     );
   };
 
+  // Back button placeholder
+  const BackButton = () => (
+    <View style={[styles.backButton, { backgroundColor: '#495E57', justifyContent: 'center', alignItems: 'center' }]}>
+      <Text style={{ color: '#fff', fontSize: 16 }}>←</Text>
+    </View>
+  );
+
+  // Logo placeholder
+  const LogoPlaceholder = () => (
+    <View style={[styles.logoContainer, { backgroundColor: '#F4CE14', justifyContent: 'center', alignItems: 'center', borderRadius: 8 }]}>
+      <Text style={{ color: '#495E57', fontSize: 16, fontWeight: 'bold' }}>LITTLE LEMON</Text>
+    </View>
+  );
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         {navigation.canGoBack() && (
           <Pressable onPress={() => navigation.goBack()}>
-            <Image 
-              source={require('../assets/back.png')} 
-              style={styles.backButton}
-            />
+            <BackButton />
           </Pressable>
         )}
-        <Image 
-          source={require('../assets/logo.png')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
+        <LogoPlaceholder />
         <AvatarDisplay />
       </View>
 
@@ -315,9 +322,14 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
   },
-  logo: {
+  logoContainer: {
     width: 150,
     height: 40,
+  },
+  logoText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#495E57',
   },
   avatar: {
     width: 50,
@@ -467,5 +479,9 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 32,
     fontWeight: 'bold',
+  },
+  logo: {
+    width: 150,
+    height: 40,
   },
 }); 

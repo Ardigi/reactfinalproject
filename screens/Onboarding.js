@@ -7,6 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 export default function Onboarding() {
   const navigation = useNavigation();
   const [firstName, setFirstName] = React.useState('');
+  const [lastName, setLastName] = React.useState('');
   const [email, setEmail] = React.useState('');
   
   const [fontsLoaded] = useFonts({
@@ -19,9 +20,11 @@ export default function Onboarding() {
     const loadUserData = async () => {
       try {
         const savedFirstName = await AsyncStorage.getItem('firstName');
+        const savedLastName = await AsyncStorage.getItem('lastName');
         const savedEmail = await AsyncStorage.getItem('email');
         
         if (savedFirstName) setFirstName(savedFirstName);
+        if (savedLastName) setLastName(savedLastName);
         if (savedEmail) setEmail(savedEmail);
       } catch (error) {
         console.error('Error loading user data:', error);
@@ -39,7 +42,7 @@ export default function Onboarding() {
 
   const handleSubmit = async () => {
     // Validate inputs
-    if (!firstName.trim() || !email.trim()) {
+    if (!firstName.trim() || !lastName.trim() || !email.trim()) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
@@ -53,6 +56,7 @@ export default function Onboarding() {
       // Save user data
       await AsyncStorage.multiSet([
         ['firstName', firstName],
+        ['lastName', lastName],
         ['email', email],
       ]);
       
@@ -75,15 +79,17 @@ export default function Onboarding() {
     );
   }
 
+  const LogoPlaceholder = () => (
+    <View style={[styles.logo, { backgroundColor: '#F4CE14', justifyContent: 'center', alignItems: 'center', borderRadius: 8 }]}>
+      <Text style={{ color: '#495E57', fontSize: 16, fontWeight: 'bold' }}>LITTLE LEMON</Text>
+    </View>
+  );
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.logoContainer}>
-          <Image 
-            style={styles.logo}
-            source={require('../assets/logo.png')}
-            resizeMode="contain"
-          />
+          <LogoPlaceholder />
           <Text style={styles.headerText}>LITTLE LEMON</Text>
         </View>
       </View>
@@ -98,6 +104,16 @@ export default function Onboarding() {
               style={styles.input}
               onChangeText={setFirstName}  
               value={firstName}
+              maxLength={20}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Last Name</Text>
+            <TextInput
+              style={styles.input}
+              onChangeText={setLastName}  
+              value={lastName}
               maxLength={20}
             />
           </View>
@@ -119,7 +135,7 @@ export default function Onboarding() {
             onPress={handleSubmit}
             style={[
               styles.nextButton,
-              firstName.trim() && email.trim() && styles.nextButtonActive
+              firstName.trim() && lastName.trim() && email.trim() && styles.nextButtonActive
             ]}
           >
             <Text style={styles.nextButtonText}>Next</Text>
