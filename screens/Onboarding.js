@@ -2,8 +2,10 @@ import * as React from "react";
 import { TextInput, View, Text, StyleSheet, Image, Pressable, Alert, ActivityIndicator } from "react-native";
 import { useFonts } from 'expo-font';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
 
-export default function Onboarding({ navigation }) {
+export default function Onboarding() {
+  const navigation = useNavigation();
   const [firstName, setFirstName] = React.useState('');
   const [email, setEmail] = React.useState('');
   
@@ -54,8 +56,8 @@ export default function Onboarding({ navigation }) {
         ['email', email],
       ]);
       
-      // Navigate to next screen after successful save
-      navigation.navigate('Home'); // Replace 'Home' with your next screen name
+      // Navigate to Home screen
+      navigation.navigate('Home');
     } catch (error) {
       console.error('Error saving user data:', error);
       Alert.alert('Error', 'Failed to save user data. Please try again.');
