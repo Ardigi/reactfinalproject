@@ -2,31 +2,44 @@ import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { View, Text } from 'react-native';
 import Onboarding from './screens/Onboarding';
 import Home from './screens/Home';
 import Profile from './screens/Profile';
-import Splash from './screens/Splash';
-import { MaskedTextInput } from 'react-native-mask-text';
-import * as SQLite from 'expo-sqlite';
-import { initDatabase } from './utils/database';
+import * as Font from 'expo-font';
 
 const Stack = createNativeStackNavigator();
 
-// Initialize database connection at the top level
-const db = SQLite.openDatabase('little_lemon.db');
+class ErrorBoundary extends React.Component {
+  state = { hasError: false };
 
-// Initialize database tables
-initDatabase()
-  .then(() => {
-    console.log('Database initialized successfully');
-  })
-  .catch(error => {
-    console.error('Error initializing database:', error);
-  });
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
 
-export default function App() {
-  const [isLoading, setIsLoading] = React.useState(true);
+  componentDidCatch(error, errorInfo) {
+    console.log('Error:', error);
+    console.log('Error Info:', errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text>Something went wrong. Please restart the app.</Text>
+        </View>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function App() {
   const [isOnboardingCompleted, setIsOnboardingCompleted] = React.useState(false);
+  const [fontsLoaded] = Font.useFonts({
+    'Karla-Regular': require('./assets/fonts/Karla-Regular.ttf'),
+    'MarkaziText-Regular': require('./assets/fonts/MarkaziText-Regular.ttf'),
+  });
 
   React.useEffect(() => {
     checkOnboardingStatus();
@@ -39,49 +52,37 @@ export default function App() {
       setIsOnboardingCompleted(Boolean(firstName && email));
     } catch (error) {
       console.error('Error checking onboarding status:', error);
-    } finally {
-      // Add a small delay to show splash screen
-      setTimeout(() => {
-        setIsLoading(false);
-      }, 2000);
     }
   };
 
-  if (isLoading) {
-    return <Splash />;
+  if (!fontsLoaded) {
+    return null;
   }
 
   return (
     <NavigationContainer>
       <Stack.Navigator 
-        initialRouteName={isOnboardingCompleted ? "Profile" : "Onboarding"}
+        initialRouteName={isOnboardingCompleted ? "Home" : "Onboarding"}
         screenOptions={{
-          headerShown: false,
-          contentStyle: {
-            backgroundColor: '#FFFFFF'
-          }
+          headerShown: true
         }}
       >
-        {!isOnboardingCompleted ? (
-          // Auth Stack
-          <Stack.Screen 
-            name="Onboarding" 
-            component={Onboarding}
-          />
-        ) : (
-          // App Stack
-          <>
-            <Stack.Screen 
-              name="Profile" 
-              component={Profile}
-            />
-            <Stack.Screen  
-              name="Home" 
-              component={Home}
-            />
-          </>
-        )}
+        <Stack.Screen 
+          name="Onboarding" 
+          component={Onboarding}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen name="Home" component={Home} />
+        <Stack.Screen name="Profile" component={Profile} />
       </Stack.Navigator>
     </NavigationContainer>
+  );
+}
+
+export default function AppWrapper() {
+  return (
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   );
 } 

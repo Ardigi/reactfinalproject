@@ -1,8 +1,8 @@
 import * as FileSystem from 'expo-file-system';
-import { Platform } from 'react-native';
 
 const imageCache = {};
 const cacheDirectory = `${FileSystem.cacheDirectory}images/`;
+const CACHE_EXPIRY = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export const ensureDirExists = async () => {
   const dirInfo = await FileSystem.getInfoAsync(cacheDirectory);
@@ -12,20 +12,13 @@ export const ensureDirExists = async () => {
 };
 
 export const getCachedImage = async (url) => {
-  // Web platform doesn't need caching as browsers handle it
-  if (Platform.OS === 'web') {
-    return { uri: url };
-  }
-
   try {
     await ensureDirExists();
-
     const filename = url.split('/').pop();
     const filePath = cacheDirectory + filename;
     const fileInfo = await FileSystem.getInfoAsync(filePath);
 
     if (!fileInfo.exists) {
-      // Download and cache the image
       await FileSystem.downloadAsync(url, filePath);
       imageCache[url] = filePath;
     }
@@ -33,7 +26,27 @@ export const getCachedImage = async (url) => {
     return { uri: imageCache[url] || filePath };
   } catch (error) {
     console.error('Error caching image:', error);
-    // Fallback to original URL if caching fails
     return { uri: url };
+  }
+};
+
+export const clearOldCache = async () => {
+  try {
+    const dirInfo = await FileSystem.getInfoAsync(cacheDirectory);
+    if (!dirInfo.exists) return;
+
+    const contents = await FileSystem.readDirectoryAsync(cacheDirectory);
+    const now = new Date().getTime();
+
+    for (const filename of contents) {
+      const filePath = cacheDirectory + filename;
+      const fileInfo = await FileSystem.getInfoAsync(filePath);
+      
+      if (now - fileInfo.modificationTime > CACHE_EXPIRY) {
+        await FileSystem.deleteAsync(filePath);
+      }
+    }
+  } catch (error) {
+    console.error('Error clearing cache:', error);
   }
 }; 

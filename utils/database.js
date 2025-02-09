@@ -6,21 +6,34 @@ const db = SQLite.openDatabase('little_lemon.db');
 // Export the db connection for potential direct use
 export { db };
 
+let dbInitPromise = null;
+
 export const initDatabase = () => {
-  return new Promise((resolve, reject) => {
-    db.transaction(
-      (tx) => {
-        tx.executeSql(
-          'CREATE TABLE IF NOT EXISTS menu (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, description TEXT, price REAL, category TEXT, image TEXT);'
-        );
-      },
-      (error) => {
-        console.error('Error creating table:', error);
-        reject(error);
-      },
-      resolve
-    );
-  });
+  // Only initialize once
+  if (!dbInitPromise) {
+    dbInitPromise = new Promise((resolve, reject) => {
+      db.transaction(
+        (tx) => {
+          tx.executeSql(
+            'CREATE TABLE IF NOT EXISTS menu (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, description TEXT, price REAL, category TEXT, image TEXT);',
+            [],
+            (_, result) => resolve(result),
+            (_, error) => reject(error)
+          );
+        },
+        (error) => {
+          console.error('Error creating table:', error);
+          dbInitPromise = null; // Reset on error
+          reject(error);
+        },
+        () => {
+          console.log('Database initialized successfully');
+          resolve();
+        }
+      );
+    });
+  }
+  return dbInitPromise;
 };
 
 export const saveMenuItems = (menuItems) => {
@@ -158,4 +171,8 @@ export const searchMenuItems = (searchText, categories = []) => {
       }
     );
   });
+};
+
+export const closeDatabase = () => {
+  db._db.close();
 }; 
