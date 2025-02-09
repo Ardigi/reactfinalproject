@@ -56,8 +56,11 @@ export default function Onboarding() {
         ['email', email],
       ]);
       
-      // Navigate to Home screen
-      navigation.navigate('Home');
+      // Navigate to Profile screen
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Profile' }],
+      });
     } catch (error) {
       console.error('Error saving user data:', error);
       Alert.alert('Error', 'Failed to save user data. Please try again.');
