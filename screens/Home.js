@@ -202,12 +202,22 @@ export default function Home() {
       'Bruschetta': 'bruschetta.jpg',
       'Grilled Fish': 'grilledFish.jpg',
       'Pasta': 'pasta.jpg',
-      'Lemon Dessert': 'lemonDessert 2.jpg'
+      'Lemon Dessert': 'lemonDessert 2.jpg'  // Note the space in filename
     };
     
     const imagePath = imageMapping[imageName];
+    if (!imagePath) {
+      console.error(`No image mapping found for: ${imageName}`);
+      return null;
+    }
+
     const url = `${IMAGE_BASE_URL}/${imagePath}`;
-    return await getCachedImage(url);
+    try {
+      return await getCachedImage(url);
+    } catch (error) {
+      console.error('Error loading image:', error);
+      return null;
+    }
   };
 
   // Handle search text changes with debounce
@@ -231,7 +241,10 @@ export default function Home() {
         <Image 
           source={item.image}
           style={styles.menuItemImage}
-          defaultSource={require('../assets/placeholder.png')}
+          onError={(e) => {
+            console.error('Image load error:', e.nativeEvent.error);
+            // Just show the colored background if image fails
+          }}
         />
       </View>
     </View>

@@ -235,6 +235,17 @@ export default function Profile() {
     setProfileImage(null);
   };
 
+  const AvatarDisplay = ({ profileImage, initials }) => {
+    if (profileImage) {
+      return <Image source={{ uri: profileImage }} style={styles.avatar} />;
+    }
+    return (
+      <View style={styles.initialsContainer}>
+        <Text style={styles.initialsText}>{initials}</Text>
+      </View>
+    );
+  };
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -249,13 +260,7 @@ export default function Profile() {
       <Text style={styles.title}>Personal Information</Text>
       
       <View style={styles.avatarSection}>
-        {profileImage ? (
-          <Image source={{ uri: profileImage }} style={styles.avatar} />
-        ) : (
-          <View style={styles.initialsContainer}>
-            <Text style={styles.initialsText}>{getInitials()}</Text>
-          </View>
-        )}
+        <AvatarDisplay profileImage={profileImage} initials={getInitials()} />
         <View style={styles.avatarButtons}>
           <Pressable style={styles.changeButton} onPress={pickImage}>
             <Text style={styles.buttonText}>Change</Text>
