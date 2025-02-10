@@ -40,9 +40,20 @@ function App() {
     'Karla-Regular': require('./assets/fonts/Karla-Regular.ttf'),
     'MarkaziText-Regular': require('./assets/fonts/MarkaziText-Regular.ttf'),
   });
+  const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
-    checkOnboardingStatus();
+    const initialize = async () => {
+      try {
+        setIsLoading(true);
+        await checkOnboardingStatus();
+      } catch (error) {
+        console.error('Error initializing:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    initialize();
   }, []);
 
   const checkOnboardingStatus = async () => {
@@ -55,10 +66,11 @@ function App() {
     }
   };
 
-  if (!fontsLoaded) {
+  if (isLoading || !fontsLoaded) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color="#495E57" />
+        <Text style={{ marginTop: 10 }}>Loading...</Text>
       </View>
     );
   }
