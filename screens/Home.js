@@ -176,7 +176,7 @@ export default function Home() {
     };
 
     setSearchHandler(() => debounce(handler, 500));
-  }, [isDatabaseReady, selectedCategory]);
+  }, [isDatabaseReady, selectedCategory, debouncedSearchText]);
 
   // Handle category selection
   const handleCategorySelect = async (category) => {
@@ -470,11 +470,6 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 8,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#CCCCCC',
-    marginTop: 10,
   },
   loadingContainer: {
     padding: 20,

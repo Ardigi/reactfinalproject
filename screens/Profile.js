@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, Image, TextInput, Pressable, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
@@ -22,9 +22,9 @@ export default function Profile() {
 
   useEffect(() => {
     loadUserData();
-  }, []);
+  }, [loadUserData]);
 
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     setIsLoading(true);
     try {
       const data = await AsyncStorage.multiGet([
@@ -82,7 +82,7 @@ export default function Profile() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   const handleLogout = async () => {
     Alert.alert(
