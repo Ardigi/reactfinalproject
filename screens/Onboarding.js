@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const Header = () => (
   <View style={styles.header}>
     <Image 
-      source={require('../assets/Logo.png')}
+      source={require('../assets/images/Logo.png')}
       style={styles.logo}
       resizeMode="contain"
     />
