@@ -20,10 +20,6 @@ export default function Profile() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    loadUserData();
-  }, [loadUserData]);
-
   const loadUserData = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -83,6 +79,10 @@ export default function Profile() {
       setIsLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    loadUserData();
+  }, [loadUserData]);
 
   const handleLogout = async () => {
     Alert.alert(
