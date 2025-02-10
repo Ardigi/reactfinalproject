@@ -1,8 +1,0 @@
-// Splash screen
-const splash = `
-<svg width="1242" height="2436" xmlns="http://www.w3.org/2000/svg">
-  <rect width="1242" height="2436" fill="#FFFFFF"/>
-  <rect x="471" y="1068" width="300" height="300" fill="#F4CE14" rx="150"/>
-  <text x="521" y="1468" font-family="Arial" font-size="40" fill="#495E57">Little Lemon</text>
-</svg>
-` 
