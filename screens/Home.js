@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { initDatabase, saveMenuItems, getMenuItems, hasData, getMenuItemsByCategories, searchMenuItems, closeDatabase } from '../utils/database';
 import { useMemo, useCallback } from 'react';
-import debounce from 'lodash/debounce';
+import debounce from 'lodash.debounce';
 import { getCachedImage } from '../utils/imageCache';
 
 const API_URL = 'https://raw.githubusercontent.com/Meta-Mobile-Developer-PC/Working-With-Data-API/main/capstone.json';
